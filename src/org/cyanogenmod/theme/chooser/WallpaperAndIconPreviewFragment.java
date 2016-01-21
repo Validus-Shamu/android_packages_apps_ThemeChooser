@@ -16,12 +16,20 @@
 package org.cyanogenmod.theme.chooser;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.content.res.ThemeConfig;
 import android.content.res.Resources;
@@ -29,12 +37,14 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ThemesContract;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -48,31 +58,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.cyanogenmod.theme.util.IconPreviewHelper;
+import org.cyanogenmod.theme.util.PackagesUtils;
 import org.cyanogenmod.theme.util.Utils;
 
-public class WallpaperAndIconPreviewFragment extends Fragment
-{
+public class WallpaperAndIconPreviewFragment extends Fragment {
     private static final int LOADER_ID_IMAGE = 0;
     private static final int LOADER_ID_ICONS = 1;
 
-    private static final ComponentName COMPONENT_DIALER =
-            new ComponentName("com.android.dialer", "com.android.dialer.DialtactsActivity");
-    private static final ComponentName COMPONENT_MESSAGING =
-            new ComponentName("com.android.mms", "com.android.mms.ui.ConversationList");
-    private static final ComponentName COMPONENT_CAMERANEXT =
-            new ComponentName("com.cyngn.cameranext", "com.android.camera.CameraLauncher");
-    private static final ComponentName COMPONENT_CAMERA =
-            new ComponentName("com.android.camera2", "com.android.camera.CameraLauncher");
-    private static final ComponentName COMPONENT_BROWSER =
-            new ComponentName("com.android.browser", "com.android.browser.BrowserActivity");
     private static final ComponentName COMPONENT_SETTINGS =
             new ComponentName("com.android.settings", "com.android.settings.Settings");
-    private static final ComponentName COMPONENT_CALENDAR =
-            new ComponentName("com.android.calendar", "com.android.calendar.AllInOneActivity");
-    private static final ComponentName COMPONENT_GALERY =
-            new ComponentName("com.android.gallery3d", "com.android.gallery3d.app.GalleryActivity");
-
-    private static final String CAMERA_NEXT_PACKAGE = "com.cyngn.cameranext";
 
     private static ComponentName[] sIconComponents;
 
@@ -91,7 +85,7 @@ public class WallpaperAndIconPreviewFragment extends Fragment
     private TextView mNoPreview;
 
     static WallpaperAndIconPreviewFragment newInstance(String imageUrl, String pkgName,
-            boolean hasIcons) {
+                                                       boolean hasIcons) {
         final WallpaperAndIconPreviewFragment f = new WallpaperAndIconPreviewFragment();
         final Bundle args = new Bundle();
         args.putString(IMAGE_DATA_EXTRA, imageUrl);
@@ -138,28 +132,25 @@ public class WallpaperAndIconPreviewFragment extends Fragment
     public static ComponentName[] getIconComponents(Context context) {
 
         if (sIconComponents == null || sIconComponents.length == 0) {
-            sIconComponents = new ComponentName[]{COMPONENT_DIALER, COMPONENT_MESSAGING,
-                    COMPONENT_CAMERA, COMPONENT_BROWSER};
+
+            sIconComponents = new ComponentName[4];
 
             PackageManager pm = context.getPackageManager();
 
+            sIconComponents[0] = PackagesUtils.getMostUsedDialer(context);
+            sIconComponents[1] = PackagesUtils.getMostUsedMessenger(context);
+            sIconComponents[2] = PackagesUtils.getMostUsedCamera(context);
+            sIconComponents[3] = PackagesUtils.getMostUsedBrowser(context);
+
+
             // if device does not have telephony replace dialer and mms
             if (!pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
-                sIconComponents[0] = COMPONENT_CALENDAR;
-                sIconComponents[1] = COMPONENT_GALERY;
+                sIconComponents[0] = PackagesUtils.getMostUsedCalendar(context);
+                sIconComponents[1] = PackagesUtils.getMostUsedGallery(context);
             }
 
             if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
                 sIconComponents[2] = COMPONENT_SETTINGS;
-            } else {
-                // decide on which camera icon to use
-                try {
-                    if (pm.getPackageInfo(CAMERA_NEXT_PACKAGE, 0) != null) {
-                        sIconComponents[2] = COMPONENT_CAMERANEXT;
-                    }
-                } catch (NameNotFoundException e) {
-                    // default to COMPONENT_CAMERA
-                }
             }
 
         }
@@ -306,6 +297,7 @@ public class WallpaperAndIconPreviewFragment extends Fragment
     public static class IconInfo {
         public String name;
         public Drawable icon;
+
         public IconInfo(String name, Drawable drawable) {
             this.name = name;
             this.icon = drawable;
