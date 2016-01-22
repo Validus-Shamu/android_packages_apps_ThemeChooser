@@ -69,6 +69,8 @@ import org.cyanogenmod.theme.util.IconPreviewHelper;
 import org.cyanogenmod.theme.util.ThemedTypefaceHelper;
 import org.cyanogenmod.theme.util.Utils;
 
+import org.cyanogenmod.theme.chooser.Helpers;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -79,11 +81,6 @@ public class ChooserBrowseFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final String TAG = ChooserBrowseFragment.class.getCanonicalName();
     public static final String DEFAULT = ThemeConfig.SYSTEM_DEFAULT;
-
-    private static final String THEME_STORE_PACKAGE_NAME = "com.cyngn.theme.store";
-    private static final String GET_THEMES_URL =
-            "http://wiki.cyanogenmod.org/w/Get_Themes?action=render";
-    private static final String THEME_STORE_ACTIVITY = "com.cyngn.theme.store.StoreActivity";
 
     public AbsListView mListView;
     public LocalPagerAdapter mAdapter;
@@ -146,62 +143,21 @@ public class ChooserBrowseFragment extends Fragment
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
-            case R.id.get_more_themes:
-                if (isThemeStoreInstalled()) {
-                    try {
-                        launchThemeStore();
-                    } catch (ActivityNotFoundException e) {
-                        lauchGetThemesWithoutStore();
-                    }
-                } else {
-                    lauchGetThemesWithoutStore();
-                }
+            case R.id.playstore_themes:
+                launchThemeStore();
+            break;
+            case R.id.restart_systemui:
+                Helpers.restartSystemUI();
                 return true;
         }
 
         return false;
     }
 
-    private boolean isThemeStoreInstalled() {
-        PackageManager pm = getActivity().getPackageManager();
-        try {
-            pm.getPackageInfo(THEME_STORE_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
-            return true;
-        } catch (NameNotFoundException e) {
-            return false;
-        }
-    }
-
     private void launchThemeStore() {
-        Intent intent = new Intent();
-        intent.setComponent(new ComponentName(THEME_STORE_PACKAGE_NAME,
-                THEME_STORE_ACTIVITY));
-        getActivity().startActivity(intent);
-    }
-
-    private void lauchGetThemesWithoutStore() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(R.string.get_more_description);
-        builder.setItems(R.array.get_more_entry_names, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                Context context = getActivity();
-                if (context == null) return;
-
-                String[] entryUrls = context.getResources().getStringArray(R.array.get_more_entry_urls);
-
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(entryUrls[which]));
-
-                if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
-                    context.startActivity(intent);
-                } else {
-                    Toast.makeText(getActivity(), R.string.get_more_app_not_available,
-                            Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-
-        builder.show();
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("market://search?q=cm13+themes&c=apps"));
+        startActivity(intent);
     }
 
     @Override
