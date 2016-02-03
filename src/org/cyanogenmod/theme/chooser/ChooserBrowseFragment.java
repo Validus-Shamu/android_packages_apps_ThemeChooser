@@ -69,7 +69,7 @@ import org.cyanogenmod.theme.util.IconPreviewHelper;
 import org.cyanogenmod.theme.util.ThemedTypefaceHelper;
 import org.cyanogenmod.theme.util.Utils;
 
-import org.cyanogenmod.theme.chooser.Helpers;
+import com.android.internal.util.du.Helpers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
