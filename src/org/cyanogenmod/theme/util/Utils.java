@@ -17,17 +17,23 @@ package org.cyanogenmod.theme.util;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.ThemesContract;
 import android.provider.ThemesContract.ThemesColumns;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ViewConfiguration;
@@ -41,6 +47,9 @@ import java.io.OutputStream;
 
 public class Utils {
     private static final String TAG = Utils.class.getSimpleName();
+    public static final String STATUS_BAR_HEADER_MORNING = "notifhead_morning";
+    public static final String STATUS_BAR_HEADER_NOON = "notifhead_noon";
+    public static final String STATUS_BAR_HEADER_EVENING = "notifhead_sunset";
 
     public static Bitmap decodeFile(String path, int reqWidth, int reqHeight) {
         BitmapFactory.Options opts = new BitmapFactory.Options();
