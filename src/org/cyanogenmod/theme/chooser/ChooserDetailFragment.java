@@ -198,7 +198,7 @@ public class ChooserDetailFragment extends Fragment implements LoaderManager.Loa
         mApply.setOnClickListener(new OnClickListener() {
             public void onClick(View view) {
                 ThemeChangeRequest request = getThemeChangeRequestForSelectedComponents();
-                mService.requestThemeChange(request, true);
+                mService.requestThemeChange(request, false);
                 mApply.setText(R.string.applying);
             }
         });
